@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
+import { parentAPI, aiAPI } from '../lib/api';
 import { Bot, Send, Loader2, Brain, HelpCircle, Sparkles } from 'lucide-react';
 
 export default function ParentDashboard() {
@@ -92,21 +93,13 @@ export default function ParentDashboard() {
 
     try {
       // Call backend API for authentication
-      const response = await fetch('/api/parent/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          kid_username: kidUsername.trim(), // This is user_id
-          parent_pin: parentPin 
-        })
-      });
-
-      const data = await response.json();
+      const data = await parentAPI.login(kidUsername.trim(), parentPin);
 
       if (data.success) {
         // Save auth to localStorage (expires in 24 hours)
         const authData = {
           kid_username: kidUsername.trim(), // This is user_id
+          token: data.token, // Store JWT token
           expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
           authenticatedAt: new Date().toISOString()
         };
@@ -119,7 +112,7 @@ export default function ParentDashboard() {
       }
     } catch (error) {
       console.error('Login error:', error);
-      setAuthError('Network error. Please try again.');
+      setAuthError(error.message || 'Network error. Please try again.');
     } finally {
       setIsLoggingIn(false);
     }
@@ -204,18 +197,12 @@ export default function ParentDashboard() {
     setIsAiLoading(true);
     
     try {
-      // Call your AI backend endpoint
-      const response = await fetch('/api/ai/assistant', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question: userMessage,
-          context: aiContext,
-          conversationHistory: aiMessages.slice(-5) // Last 5 messages for context
-        })
-      });
-      
-      const data = await response.json();
+      // Call AI backend endpoint
+      const data = await aiAPI.ask(
+        userMessage,
+        aiContext,
+        aiMessages.slice(-5) // Last 5 messages for context
+      );
       
       // Add AI response
       const aiResponse = {
