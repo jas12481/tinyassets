@@ -97,6 +97,16 @@ CREATE TABLE IF NOT EXISTS earned_badges (
     day_number INTEGER NOT NULL -- Day when badge was unlocked
 );
 
+-- Parent Codes Table (Parent Auth)
+CREATE TABLE IF NOT EXISTS parent_codes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    kid_username VARCHAR(50) UNIQUE NOT NULL,
+    parent_pin VARCHAR(4) NOT NULL,
+    game_state_id UUID REFERENCES game_state(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(kid_username, parent_pin)
+);
+
 -- ============================================
 -- Indexes for Performance
 -- ============================================
@@ -113,6 +123,8 @@ CREATE INDEX IF NOT EXISTS idx_missions_mission_id ON missions(user_id, mission_
 CREATE INDEX IF NOT EXISTS idx_daily_production_user_id ON daily_production(user_id);
 CREATE INDEX IF NOT EXISTS idx_daily_production_date ON daily_production(user_id, production_date);
 CREATE INDEX IF NOT EXISTS idx_earned_badges_user_id ON earned_badges(user_id);
+CREATE INDEX IF NOT EXISTS idx_parent_codes_kid_username ON parent_codes(kid_username);
+CREATE INDEX IF NOT EXISTS idx_parent_codes_pin ON parent_codes(parent_pin);
 
 -- ============================================
 -- Functions & Triggers
@@ -141,6 +153,7 @@ ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE missions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_production ENABLE ROW LEVEL SECURITY;
 ALTER TABLE earned_badges ENABLE ROW LEVEL SECURITY;
+ALTER TABLE parent_codes ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow all for game_state" ON game_state
     FOR ALL USING (true) WITH CHECK (true);
@@ -161,4 +174,7 @@ CREATE POLICY "Allow all for daily_production" ON daily_production
     FOR ALL USING (true) WITH CHECK (true);
 
 CREATE POLICY "Allow all for earned_badges" ON earned_badges
+    FOR ALL USING (true) WITH CHECK (true);
+
+CREATE POLICY "Allow all for parent_codes" ON parent_codes
     FOR ALL USING (true) WITH CHECK (true);
