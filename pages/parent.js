@@ -69,7 +69,7 @@ export default function ParentDashboard() {
         {
           id: 1,
           role: 'assistant',
-          content: `Hello! I'm your AI Parent Assistant for TinyAssets. I can help you understand your child ${kidUsername}'s learning progress. Ask me anything about their XP, badges, events, or what they're learning!`,
+          content: `Hello! I'm your AI Parent Assistant for RWA Tycoon. I can help you understand your child ${kidUsername}'s learning progress. Ask me anything about their XP, badges, events, or what they're learning!`,
           timestamp: new Date().toISOString()
         }
       ]);
@@ -414,7 +414,7 @@ export default function ParentDashboard() {
     return (
       <>
         <Head>
-          <title>Parent Login - TinyAssets</title>
+          <title>Parent Login - RWA Tycoon</title>
           <meta name="description" content="Login to view your child's learning progress" />
         </Head>
         
@@ -751,8 +751,8 @@ export default function ParentDashboard() {
   return (
     <>
       <Head>
-        <title>Parent Dashboard - TinyAssets</title>
-        <meta name="description" content="View your child's learning progress on TinyAssets" />
+        <title>Parent Dashboard - RWA Tycoon</title>
+        <meta name="description" content="View your child's learning progress on RWA Tycoon" />
       </Head>
       
       <div className="parent-container">
@@ -1008,7 +1008,7 @@ export default function ParentDashboard() {
               <div className="safety-icon">🛡️</div>
               <div>
                 <h2>Safety & Educational Focus</h2>
-                <p className="safety-subtitle">TinyAssets is designed with child safety as the top priority</p>
+                <p className="safety-subtitle">RWA Tycoon is designed with child safety as the top priority</p>
               </div>
             </div>
             
@@ -1049,7 +1049,7 @@ export default function ParentDashboard() {
             <div className="educational-note">
               <h3>Educational Value</h3>
               <p>
-                TinyAssets helps children understand fundamental economic concepts like supply and demand, 
+                RWA Tycoon helps children understand fundamental economic concepts like supply and demand, 
                 value appreciation/depreciation, and how external events affect different types of assets. 
                 This foundational knowledge builds financial literacy in a completely safe, gamified environment.
               </p>
@@ -1058,7 +1058,7 @@ export default function ParentDashboard() {
         </main>
 
         <footer className="parent-footer">
-          <p>TinyAssets • Educational Simulation Only • Designed for Learning</p>
+          <p>RWA Tycoon • Educational Simulation Only • Designed for Learning</p>
           <p className="footer-note">
             Viewing progress for: <strong>{kidUsername}</strong> (user_id)
             <br />
