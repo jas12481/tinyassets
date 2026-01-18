@@ -358,6 +358,22 @@ function shouldTriggerEvent(dayNumber) {
 // ============================================
 
 const MISSIONS = {
+    'asset-detective': {
+        id: 'asset-detective',
+        name: 'Asset Detective',
+        description: 'Watch a demo of each asset for 1 day (auto-completes during tutorial)',
+        category: 'tutorial',
+        reward_tokens: 5,
+        reward_xp: 10,
+        autoComplete: true, // Auto-completes during tutorial flow
+        checkComplete: (gameState, userAssets, eventHistory, dailyProduction, transactions) => {
+            // Auto-completes when tutorial is completed
+            // For now, check if user has seen events or has any production history
+            // This indicates they've observed assets working
+            // TODO: Add tutorial_complete flag to game_state table when implementing tutorial flow
+            return dailyProduction.length >= 1 || eventHistory.length >= 1;
+        }
+    },
     'first-share': {
         id: 'first-share',
         name: 'First Share',
@@ -367,6 +383,30 @@ const MISSIONS = {
         reward_xp: 10,
         checkComplete: (gameState, userAssets, eventHistory, dailyProduction, transactions) => {
             return userAssets.some(asset => asset.shares >= 1);
+        }
+    },
+    'market-reporter': {
+        id: 'market-reporter',
+        name: 'Market Reporter',
+        description: 'Identify which asset is safest (answer: Property)',
+        category: 'tutorial',
+        reward_tokens: 5,
+        reward_xp: 10,
+        checkComplete: (gameState, userAssets, eventHistory, dailyProduction, transactions) => {
+            // This mission completes when user identifies Property as safest
+            // For now, check if they own Property (indicates they learned it's safest/steadiest)
+            // TODO: Add proper quiz/question tracking when implementing tutorial flow
+            const hasProperty = userAssets.some(a => a.asset_type === 'property' && a.shares >= 1);
+            // Alternatively, if they've owned Property for a few days, they've likely learned it's steady
+            const propertyAsset = userAssets.find(a => a.asset_type === 'property');
+            if (propertyAsset && propertyAsset.shares >= 1) {
+                // Check if Property has been owned long enough to demonstrate stability
+                const propertyProductionDays = dailyProduction.filter(p => 
+                    p.asset_type === 'property' && p.tokens_earned > 0
+                ).length;
+                return propertyProductionDays >= 1; // Owned for at least 1 day = learned it's stable
+            }
+            return false;
         }
     },
     'scale-up': {
@@ -548,6 +588,98 @@ const MISSIONS = {
     },
 };
 
+// ============================================
+// DAILY MISSIONS CONFIGURATION (Level 2+)
+// ============================================
+
+const DAILY_MISSIONS = {
+    'daily-earner': {
+        id: 'daily-earner',
+        name: 'Daily Earner',
+        description: 'Earn 10 tokens today from production',
+        category: 'daily',
+        reward_tokens: 3,
+        reward_xp: 5,
+        checkComplete: (gameState, userAssets, eventHistory, dailyProduction, transactions, todayProduction) => {
+            // Today's production must be >= 10 tokens
+            return todayProduction >= 10;
+        }
+    },
+    'steady-holder': {
+        id: 'steady-holder',
+        name: 'Steady Holder',
+        description: 'Don\'t sell any shares for 3 days',
+        category: 'daily',
+        reward_tokens: 5,
+        reward_xp: 5,
+        checkComplete: (gameState, userAssets, eventHistory, dailyProduction, transactions, todayProduction, missionProgress) => {
+            // Track days without selling in progress JSONB
+            const lastSellDay = missionProgress?.lastSellDay || 0;
+            const daysWithoutSell = gameState.current_day - lastSellDay;
+            return daysWithoutSell >= 3;
+        }
+    },
+    'risk-taker': {
+        id: 'risk-taker',
+        name: 'Risk Taker',
+        description: 'Buy shares despite negative forecast (any negative indicator today)',
+        category: 'daily',
+        reward_tokens: 4,
+        reward_xp: 5,
+        checkComplete: (gameState, userAssets, eventHistory, dailyProduction, transactions, todayProduction, missionProgress, indicators) => {
+            // Check if bought shares today AND had negative indicators
+            const boughtToday = transactions.filter(t => 
+                t.transaction_type === 'buy' && t.day_number === gameState.current_day
+            ).length > 0;
+            
+            // For now, assume negative indicators if not provided (can be enhanced later)
+            // This mission checks if user bought shares today
+            return boughtToday;
+        }
+    },
+    'event-survivor-daily': {
+        id: 'event-survivor-daily',
+        name: 'Event Survivor',
+        description: 'Don\'t lose net tokens during an event today',
+        category: 'daily',
+        reward_tokens: 5,
+        reward_xp: 5,
+        checkComplete: (gameState, userAssets, eventHistory, dailyProduction, transactions, todayProduction, missionProgress, indicators, todayEvent) => {
+            // Check if event happened today and net effect was non-negative
+            if (!todayEvent) return false;
+            const eventTokenEffect = todayEvent.token_effect || 0;
+            const netEffect = todayProduction + eventTokenEffect;
+            return netEffect >= 0; // Didn't lose net tokens
+        }
+    },
+};
+
+// Get random daily mission (rotates daily based on seed)
+function getDailyMission(dayNumber) {
+    const missionIds = Object.keys(DAILY_MISSIONS);
+    // Use day number as seed for consistent rotation
+    const seed = dayNumber % missionIds.length;
+    const missionId = missionIds[seed];
+    return DAILY_MISSIONS[missionId];
+}
+
+// Check daily mission completion
+function checkDailyMissionCompletion(dailyMission, gameState, userAssets, eventHistory, dailyProduction, transactions, todayProduction, missionProgress, indicators, todayEvent) {
+    if (!dailyMission) return false;
+    
+    return dailyMission.checkComplete(
+        gameState,
+        userAssets,
+        eventHistory,
+        dailyProduction,
+        transactions,
+        todayProduction,
+        missionProgress,
+        indicators,
+        todayEvent
+    );
+}
+
 // Check mission completion
 function checkMissionCompletion(gameState, userAssets, eventHistory, dailyProduction, transactions) {
     const completedMissions = [];
@@ -724,6 +856,11 @@ if (typeof module !== 'undefined' && module.exports) {
         // Missions
         MISSIONS,
         checkMissionCompletion,
+        
+        // Daily Missions
+        DAILY_MISSIONS,
+        getDailyMission,
+        checkDailyMissionCompletion,
         
         // Badges
         BADGES,

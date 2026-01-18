@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS game_state (
     level INTEGER DEFAULT 1 NOT NULL,
     tokens INTEGER DEFAULT 15 NOT NULL, -- Start with 15 tokens
     current_day INTEGER DEFAULT 1 NOT NULL, -- Track day number
+    tutorial_complete BOOLEAN DEFAULT FALSE NOT NULL, -- Track if tutorial completed
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
