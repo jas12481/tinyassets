@@ -1,4 +1,4 @@
-# 🎮 RWA Tycoon - Gamified Real-World Asset Learning for Kids
+# 🎮 RWA Tycoon - Gamified Real-World Asset Learning for Kids: https://tinyassets.vercel.app/ 
 
 > **Learn about real-world assets through fun, interactive gameplay!**  
 > Property, Solar Farms, and Gold — discover how they work without any real money or risk.
