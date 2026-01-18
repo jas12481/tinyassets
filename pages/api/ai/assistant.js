@@ -149,7 +149,7 @@ Provide helpful, educational responses focused on the child's learning journey. 
 
     // Use new OpenAI v4 API format
     const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o',
       messages: messages,
       temperature: 0.7,
       max_tokens: 300
