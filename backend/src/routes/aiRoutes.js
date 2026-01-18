@@ -6,23 +6,13 @@
 const express = require('express');
 const router = express.Router();
 const { aiAssistant } = require('../controllers/aiController');
-const { validateAIAssistant } = require('../middleware/validationMiddleware');
 const { optionalAuth } = require('../middleware/authMiddleware');
 
 /**
  * POST /api/ai/assistant
- * Get AI-powered response for parent questions
- * Authentication is optional but recommended for better context
+ * Get AI assistant response for parent questions
+ * Uses optional authentication to get child username from token
  */
-router.post('/assistant', optionalAuth, validateAIAssistant, aiAssistant);
-
-// Log when route is registered
-console.log('✓ AI assistant route: POST /api/ai/assistant');
-
-// Debug route to verify router is working
-router.get('/test', (req, res) => {
-  res.json({ message: 'AI routes are working!', path: req.path });
-});
+router.post('/assistant', optionalAuth, aiAssistant);
 
 module.exports = router;
-

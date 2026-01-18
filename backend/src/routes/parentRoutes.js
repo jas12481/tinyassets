@@ -37,4 +37,3 @@ router.post('/login', authLimiter, validateParentLogin, parentLogin);
 router.get('/:kid_username', validateKidUsername, optionalAuth, getParentDataByKidUsername);
 
 module.exports = router;
-

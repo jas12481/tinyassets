@@ -28,4 +28,3 @@ const setupLimiter = rateLimit({
 router.post('/setup', setupLimiter, validateKidSetup, kidSetup);
 
 module.exports = router;
-

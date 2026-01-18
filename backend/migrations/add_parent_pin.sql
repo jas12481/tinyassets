@@ -1,4 +1,4 @@
--- Migration: Add parent_pin column to game_state table
+- Migration: Add parent_pin column to game_state table
 -- Description: Adds a parent_pin column to store hashed PINs for parent authentication
 -- Date: 2024-01-15
 
@@ -19,4 +19,3 @@ CREATE INDEX IF NOT EXISTS idx_game_state_user_id ON game_state(user_id);
 
 -- Note: The PIN should be hashed using bcrypt before storing
 -- Use the backend API or a script to hash and store PINs securely
-

@@ -22,4 +22,3 @@ router.get('/game-data/:user_id', optionalAuth, validateUserId, getGameDataByUse
 router.get('/health', healthCheck);
 
 module.exports = router;
-

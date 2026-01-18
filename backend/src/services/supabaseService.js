@@ -104,28 +104,62 @@ async function verifyParentPin(userId, pin) {
 
 /**
  * Get comprehensive game data for a user
+ * @param {string} userId - The user ID (kid_username) to fetch data for
+ * @returns {Promise<Object>} Game data object with game_state, event_history, earned_badges, and learning_progress
  */
 async function getGameData(userId) {
   try {
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId provided to getGameData');
+    }
+
+    console.log(`[Supabase Service] Fetching game data for user: ${userId}`);
+
     const [gameStateResult, eventHistoryResult, badgesResult] = await Promise.all([
       getGameState(userId),
       getEventHistory(userId, 50),
       getEarnedBadges(userId)
     ]);
 
-    return {
-      game_state: gameStateResult.data,
-      event_history: eventHistoryResult.data,
-      earned_badges: badgesResult.data,
+    // Handle errors from individual queries
+    if (gameStateResult.error && gameStateResult.error.code !== 'PGRST116') {
+      // PGRST116 = no rows returned, which is acceptable
+      console.warn(`[Supabase Service] Error fetching game state:`, gameStateResult.error);
+    }
+
+    if (eventHistoryResult.error) {
+      console.warn(`[Supabase Service] Error fetching event history:`, eventHistoryResult.error);
+    }
+
+    if (badgesResult.error) {
+      console.warn(`[Supabase Service] Error fetching badges:`, badgesResult.error);
+    }
+
+    // Ensure arrays are never null/undefined
+    const eventHistory = Array.isArray(eventHistoryResult.data) ? eventHistoryResult.data : [];
+    const earnedBadges = Array.isArray(badgesResult.data) ? badgesResult.data : [];
+
+    const gameData = {
+      game_state: gameStateResult.data || null,
+      event_history: eventHistory,
+      earned_badges: earnedBadges,
       learning_progress: {
-        total_events: eventHistoryResult.data.length,
-        total_badges: badgesResult.data.length,
+        total_events: eventHistory.length,
+        total_badges: earnedBadges.length,
         current_level: gameStateResult.data?.level || 1,
         total_xp: gameStateResult.data?.xp || 0
       }
     };
+
+    console.log(`[Supabase Service] Successfully fetched game data:`, {
+      hasGameState: !!gameData.game_state,
+      eventCount: gameData.event_history.length,
+      badgeCount: gameData.earned_badges.length
+    });
+
+    return gameData;
   } catch (error) {
-    console.error('Error fetching game data:', error);
+    console.error('[Supabase Service] Error fetching game data:', error);
     throw error;
   }
 }
@@ -155,4 +189,3 @@ module.exports = {
   getGameData,
   checkConnection
 };
-
