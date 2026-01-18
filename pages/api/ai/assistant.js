@@ -152,7 +152,7 @@ Provide helpful, educational responses focused on the child's learning journey. 
       model: 'gpt-4o',
       messages: messages,
       temperature: 0.7,
-      max_tokens: 300
+      max_tokens: 500  // Increased to allow longer, more detailed responses
     });
 
     const answer = completion.choices[0]?.message?.content || 'I apologize, but I couldn\'t generate a response. Please try again.';
