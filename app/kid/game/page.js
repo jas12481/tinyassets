@@ -500,7 +500,7 @@ export default function GamePage() {
               <p className="text-blue-900 text-base mb-1 font-bold">
                 💾 Last played as: <strong>{storedUserId}</strong>
               </p>
-              <p className="text-blue-800 text-sm font-semibold">
+              <p className="text-blue-800 text-base font-semibold">
                 You can continue as this user or enter a different username
               </p>
             </div>
@@ -514,7 +514,7 @@ export default function GamePage() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="text-yellow-800 underline text-sm font-semibold"
+                className="text-yellow-800 underline text-base font-semibold"
               >
                 Clear and start fresh
               </button>
@@ -529,7 +529,7 @@ export default function GamePage() {
               <p className="text-green-900 text-3xl font-bold text-center">
                 {parentPin}
               </p>
-              <p className="text-green-800 text-sm mt-1 text-center font-semibold">
+              <p className="text-green-800 text-base mt-1 text-center font-semibold">
                 Share this code with your parent to view your progress
               </p>
             </div>
@@ -565,7 +565,7 @@ export default function GamePage() {
             </button>
           </form>
           
-          <p className="text-center text-sm text-orange-700 mt-4 font-semibold">
+          <p className="text-center text-base text-orange-700 mt-4 font-semibold">
             Don't have an account? Ask your parent to set one up for you!
           </p>
         </div>
@@ -628,7 +628,7 @@ export default function GamePage() {
           </h1>
           <div className="bg-yellow-200 rounded-xl p-6 inline-block shadow-lg border-4 border-yellow-400">
             <p className="text-3xl font-bold text-yellow-900">💰 {gameState?.tokens ?? 0} tokens</p>
-            <p className="text-base font-semibold text-orange-700">Level {gameState?.level ?? 1} | {gameState?.xp ?? 0} XP</p>
+            <p className="text-lg font-semibold text-orange-700">Level {gameState?.level ?? 1} | {gameState?.xp ?? 0} XP</p>
           </div>
         </div>
 
@@ -647,19 +647,19 @@ export default function GamePage() {
             <div className="bg-blue-200 border-4 border-blue-400 p-4 rounded-xl text-center">
               <p className="text-3xl mb-2">{indicators.weather}</p>
               <p className="font-bold text-blue-800">Weather</p>
-              <p className="text-xs font-semibold text-blue-600">Affects Solar</p>
+              <p className="text-sm font-semibold text-blue-600">Affects Solar</p>
             </div>
             
             <div className="bg-green-200 border-4 border-green-400 p-4 rounded-xl text-center">
               <p className="text-3xl mb-2">{indicators.economy}</p>
               <p className="font-bold text-green-800">Economy</p>
-              <p className="text-xs font-semibold text-green-600">Affects Property</p>
+              <p className="text-sm font-semibold text-green-600">Affects Property</p>
             </div>
             
             <div className="bg-purple-200 border-4 border-purple-400 p-4 rounded-xl text-center">
               <p className="text-3xl mb-2">{indicators.crisis}</p>
               <p className="font-bold text-purple-800">Crisis Risk</p>
-              <p className="text-xs font-semibold text-purple-600">Affects Gold</p>
+              <p className="text-sm font-semibold text-purple-600">Affects Gold</p>
             </div>
           </div>
         </div>
@@ -678,10 +678,10 @@ export default function GamePage() {
                 <div key={assetId} className="bg-cyan-200 border-4 border-cyan-400 p-4 rounded-xl">
                   <p className="text-4xl text-center mb-2">{asset.emoji}</p>
                   <p className="font-bold text-center text-cyan-900">{asset.name}</p>
-                  <p className="text-center text-sm font-semibold text-cyan-700 mt-1">
+                  <p className="text-center text-base font-semibold text-cyan-700 mt-1">
                     {shares}/{asset.maxShares} shares ({ownership}%)
                   </p>
-                  <p className="text-center text-lg font-bold text-green-700 mt-2">
+                  <p className="text-center text-xl font-bold text-green-700 mt-2">
                     +{production} tok/day
                   </p>
                 </div>
@@ -690,8 +690,8 @@ export default function GamePage() {
           </div>
           
           <div className="mt-4 pt-4 border-t-4 border-pink-400 text-center">
-            <p className="text-xl font-bold text-pink-900">
-              Total Daily Income: <span className="text-green-700 text-2xl">+{dailyProduction} tokens/day</span>
+            <p className="text-2xl font-bold text-pink-900">
+              Total Daily Income: <span className="text-green-700 text-3xl">+{dailyProduction} tokens/day</span>
             </p>
           </div>
         </div>
@@ -768,8 +768,8 @@ export default function GamePage() {
                 return (
                   <div key={assetId} className="bg-blue-200 border-4 border-blue-400 p-4 rounded-xl">
                     <p className="font-bold mb-1 text-blue-900 text-lg">{asset.emoji} {asset.name}</p>
-                      <p className="text-sm font-semibold text-blue-700 mb-1">Owned: {owned}/{asset.maxShares} shares</p>
-                      <p className="text-sm text-purple-700 mb-2 font-semibold italic">
+                      <p className="text-base font-semibold text-blue-700 mb-1">Owned: {owned}/{asset.maxShares} shares</p>
+                      <p className="text-base text-purple-700 mb-2 font-semibold italic">
                         {asset.productionPerShare > 0 
                           ? `1 share earns ${asset.productionPerShare} token${asset.productionPerShare !== 1 ? 's' : ''} daily`
                           : '1 share protects during crisis events (no daily income)'
@@ -782,18 +782,18 @@ export default function GamePage() {
                           const canAfford = currentTokens >= cost;
                           
                           return (
-                      <button
+                        <button
                               key={numShares}
                               onClick={() => setSelectedAction({type: 'buy', asset: assetId, shares: numShares})}
                               disabled={!canBuyThis || !canAfford}
-                              className={`px-4 py-2 rounded-xl font-bold text-base border-4 ${
+                              className={`px-4 py-2 rounded-xl font-bold text-lg border-4 ${
                                 selectedAction?.type === 'buy' && selectedAction?.asset === assetId && selectedAction?.shares === numShares
                             ? 'bg-green-600 text-white border-green-800'
                             : 'bg-green-500 text-white hover:bg-green-600 border-green-700'
                         } disabled:bg-gray-300 disabled:text-gray-500 disabled:border-gray-400 disabled:cursor-not-allowed`}
                       >
                               Buy {numShares} share{numShares > 1 ? 's' : ''} ({cost} tok)
-                      </button>
+                        </button>
                           );
                         })}
                     </div>
@@ -903,7 +903,7 @@ export default function GamePage() {
               </p>
               <div className="mt-3 p-3 bg-yellow-200 border-4 border-yellow-400 rounded-xl">
                 <p className="font-bold text-yellow-900 text-base">💡 Lesson:</p>
-                <p className="text-sm text-yellow-800 font-semibold">{dayResults.event.lesson}</p>
+                <p className="text-base text-yellow-800 font-semibold">{dayResults.event.lesson}</p>
               </div>
             </div>
           )}
@@ -982,19 +982,19 @@ export default function GamePage() {
           <h2 className="text-2xl font-bold mb-4 text-purple-900">📋 Daily Summary</h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-pink-200 border-4 border-pink-400 rounded-xl p-3">
-              <p className="text-sm font-semibold text-pink-800">💰 Tokens</p>
+              <p className="text-base font-semibold text-pink-800">💰 Tokens</p>
               <p className="text-2xl font-bold text-pink-900">{gameState.tokens}</p>
             </div>
             <div className="bg-blue-200 border-4 border-blue-400 rounded-xl p-3">
-              <p className="text-sm font-semibold text-blue-800">⭐ XP</p>
+              <p className="text-base font-semibold text-blue-800">⭐ XP</p>
               <p className="text-2xl font-bold text-blue-900">{gameState.xp} (Lv {gameState.level})</p>
             </div>
             <div className="bg-cyan-200 border-4 border-cyan-400 rounded-xl p-3">
-              <p className="text-sm font-semibold text-cyan-800">📈 Daily Production</p>
+              <p className="text-base font-semibold text-cyan-800">📈 Daily Production</p>
               <p className="text-2xl font-bold text-cyan-900">{dailyProduction} tok/day</p>
             </div>
             <div className="bg-yellow-200 border-4 border-yellow-400 rounded-xl p-3">
-              <p className="text-sm font-semibold text-yellow-800">📅 Day</p>
+              <p className="text-base font-semibold text-yellow-800">📅 Day</p>
               <p className="text-2xl font-bold text-yellow-900">{gameState.current_day}</p>
             </div>
           </div>
@@ -1069,37 +1069,37 @@ export default function GamePage() {
               <div className="bg-pink-200 border-4 border-pink-400 p-4 rounded-xl text-center">
                 <p className="text-4xl mb-2">⭐</p>
                 <p className="text-2xl font-bold text-pink-900">{gameState?.xp || 0} XP</p>
-                <p className="text-sm font-semibold text-pink-700">Level {gameState?.level || 1}</p>
+                <p className="text-base font-semibold text-pink-700">Level {gameState?.level || 1}</p>
               </div>
               
               <div className="bg-green-200 border-4 border-green-400 p-4 rounded-xl text-center">
                 <p className="text-4xl mb-2">💰</p>
                 <p className="text-2xl font-bold text-green-900">{gameState?.tokens || 0} tokens</p>
-                <p className="text-sm font-semibold text-green-700">Current Balance</p>
+                <p className="text-base font-semibold text-green-700">Current Balance</p>
               </div>
               
               <div className="bg-blue-200 border-4 border-blue-400 p-4 rounded-xl text-center">
                 <p className="text-4xl mb-2">📅</p>
                 <p className="text-2xl font-bold text-blue-900">Day {gameState?.current_day || 1}</p>
-                <p className="text-sm font-semibold text-blue-700">Days Played</p>
+                <p className="text-base font-semibold text-blue-700">Days Played</p>
               </div>
               
               <div className="bg-cyan-200 border-4 border-cyan-400 p-4 rounded-xl text-center">
                 <p className="text-4xl mb-2">📈</p>
                 <p className="text-2xl font-bold text-cyan-900">{dailyProduction} tok/day</p>
-                <p className="text-sm font-semibold text-cyan-700">Daily Production</p>
+                <p className="text-base font-semibold text-cyan-700">Daily Production</p>
               </div>
               
               <div className="bg-yellow-200 border-4 border-yellow-400 p-4 rounded-xl text-center">
                 <p className="text-4xl mb-2">🏆</p>
                 <p className="text-2xl font-bold text-yellow-900">{stats?.badges?.length || 0}</p>
-                <p className="text-sm font-semibold text-yellow-700">Badges Earned</p>
+                <p className="text-base font-semibold text-yellow-700">Badges Earned</p>
               </div>
               
               <div className="bg-purple-200 border-4 border-purple-400 p-4 rounded-xl text-center">
                 <p className="text-4xl mb-2">📊</p>
                 <p className="text-2xl font-bold text-purple-900">{stats?.events?.length || 0}</p>
-                <p className="text-sm font-semibold text-purple-700">Events Experienced</p>
+                <p className="text-base font-semibold text-purple-700">Events Experienced</p>
               </div>
             </div>
 
@@ -1115,10 +1115,10 @@ export default function GamePage() {
                   return (
                     <div key={assetId} className="bg-orange-200 border-4 border-orange-400 p-3 rounded-xl text-center">
                       <p className="text-3xl mb-1">{asset.emoji}</p>
-                      <p className="font-bold text-orange-900 text-sm">{asset.name}</p>
-                      <p className="text-xs font-semibold text-orange-700 mt-1">{shares}/{asset.maxShares} shares</p>
-                      <p className="text-base font-bold text-blue-700 mt-1">{ownership}% owned</p>
-                      <p className="text-xs font-semibold text-green-700 mt-1">+{production} tok/day</p>
+                      <p className="font-bold text-orange-900 text-base">{asset.name}</p>
+                      <p className="text-sm font-semibold text-orange-700 mt-1">{shares}/{asset.maxShares} shares</p>
+                      <p className="text-lg font-bold text-blue-700 mt-1">{ownership}% owned</p>
+                      <p className="text-sm font-semibold text-green-700 mt-1">+{production} tok/day</p>
                     </div>
                   );
                 })}
