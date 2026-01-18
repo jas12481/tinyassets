@@ -3,7 +3,6 @@
  * Next.js API route that handles AI assistant requests for parent dashboard
  */
 
-import { getOrCreateGameState, getEventHistory, getEarnedBadges } from '../../../lib/db-helpers';
 import { createServerClient } from '../../../lib/supabase';
 import jwt from 'jsonwebtoken';
 
@@ -216,19 +215,68 @@ function optionalAuth(req) {
 
 /**
  * Get game data for a user (similar to backend getGameData)
+ * Uses server-side Supabase client with service role key to bypass RLS
  */
 async function getGameDataForAI(childUsername) {
   try {
-    const [gameState, eventHistory, earnedBadges] = await Promise.all([
-      getOrCreateGameState(childUsername),
-      getEventHistory(childUsername, 50),
-      getEarnedBadges(childUsername)
+    // Use server client with service role key for API routes (bypasses RLS)
+    const supabase = createServerClient();
+    
+    // Fetch data directly using server client
+    const [gameStateResult, eventHistoryResult, badgesResult] = await Promise.all([
+      supabase
+        .from('game_state')
+        .select('*')
+        .eq('user_id', childUsername)
+        .single(),
+      supabase
+        .from('event_history')
+        .select('*')
+        .eq('user_id', childUsername)
+        .order('timestamp', { ascending: false })
+        .limit(50),
+      supabase
+        .from('earned_badges')
+        .select('*')
+        .eq('user_id', childUsername)
+        .order('unlocked_at', { ascending: false })
     ]);
+
+    // Handle game state - create if doesn't exist
+    let gameState = gameStateResult.data;
+    if (gameStateResult.error && gameStateResult.error.code === 'PGRST116') {
+      // No game state exists, create one
+      const { data: newState, error: createError } = await supabase
+        .from('game_state')
+        .insert({
+          user_id: childUsername,
+          selected_asset: null,
+          xp: 0,
+          level: 1,
+          tokens: 15,
+          current_day: 1,
+          tutorial_complete: false,
+        })
+        .select()
+        .single();
+      
+      if (createError) {
+        console.error('[AI Route] Error creating game state:', createError);
+        // Continue with null gameState if creation fails
+        gameState = null;
+      } else {
+        gameState = newState;
+      }
+    } else if (gameStateResult.error) {
+      console.error('[AI Route] Error fetching game state:', gameStateResult.error);
+      // Continue with null gameState if fetch fails
+      gameState = null;
+    }
 
     return {
       game_state: gameState,
-      event_history: Array.isArray(eventHistory) ? eventHistory : [],
-      earned_badges: Array.isArray(earnedBadges) ? earnedBadges : [],
+      event_history: Array.isArray(eventHistoryResult.data) ? eventHistoryResult.data : [],
+      earned_badges: Array.isArray(badgesResult.data) ? badgesResult.data : [],
     };
   } catch (error) {
     console.error('[AI Route] Error fetching game data:', error);
