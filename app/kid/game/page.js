@@ -159,17 +159,17 @@ export default function GamePage() {
   }, [gameState]);
 
   // Load game state from backend
-  const loadGameState = async () => {
+  const loadGameState = async (skipLoading = false) => {
     try {
-      setLoading(true);
+      if (!skipLoading) {
+        setLoading(true);
+      }
       setError(null);
       
       const [gameStateData, portfolioData] = await Promise.all([
         gameAPI.getGameState(),
         gameAPI.getPortfolio(),
       ]);
-      
-      setGameState(gameStateData);
       
       // Transform portfolio array to object format expected by frontend
       const portfolioObj = {};
@@ -184,14 +184,15 @@ export default function GamePage() {
         }
       });
       
-      setPortfolio(portfolioObj);
-      
       // Calculate daily production
       const dailyProduction = portfolioData.summary?.totalDailyProduction || 0;
-      setGameState(prev => ({
-        ...prev,
+      
+      // Update all state in a single batch to prevent race conditions
+      setPortfolio(portfolioObj);
+      setGameState({
+        ...gameStateData,
         dailyProduction,
-      }));
+      });
       
       // Check win conditions - only set hasWon if not already acknowledged
       const won = checkWinConditions(gameStateData, portfolioObj);
@@ -204,11 +205,23 @@ export default function GamePage() {
         setShowTutorial(true);
       }
       
+      // Return the updated state for immediate use
+      return {
+        gameState: {
+          ...gameStateData,
+          dailyProduction,
+        },
+        portfolio: portfolioObj,
+      };
+      
     } catch (err) {
       console.error('Error loading game state:', err);
       setError(err.message || 'Failed to load game');
+      throw err; // Re-throw so callers know it failed
     } finally {
-      setLoading(false);
+      if (!skipLoading) {
+        setLoading(false);
+      }
     }
   };
 
@@ -335,7 +348,7 @@ export default function GamePage() {
       }
       // 'hold' does nothing
       
-      // Execute day (process production + events)
+      // Execute day (process production + events) - this increments the day
       const dayResult = await gameAPI.executeDay();
       
       // Transform day results for frontend
@@ -354,14 +367,18 @@ export default function GamePage() {
         newMissions: dayResult.newMissions || [],
       };
       
+      // Reload game state FIRST (skip loading state to avoid UI flicker)
+      // This ensures gameState.current_day is updated before phase change
+      const updatedState = await loadGameState(true);
+      
+      // Now set the day results and phase - state is guaranteed to be updated
       setDayResults(transformedResults);
       setNewBadges(transformedResults.newBadges || []);
       setNewMissions(transformedResults.newMissions || []);
       
-      // Reload game state
-      await loadGameState();
       generateIndicators(); // New indicators for next day
       
+      // Phase change happens after state is fully loaded
       setPhase('evening');
     } catch (err) {
       console.error('Error executing decision:', err);
@@ -374,7 +391,7 @@ export default function GamePage() {
     try {
       setError(null);
       
-      // Skip day (auto-hold + process)
+      // Skip day (auto-hold + process) - this increments the day
       const dayResult = await gameAPI.skipDay();
       
       // Transform day results
@@ -393,8 +410,9 @@ export default function GamePage() {
         newMissions: dayResult.newMissions || [],
       };
       
-      // Update state
-      await loadGameState();
+      // Update state FIRST (skip loading state to avoid UI flicker)
+      // This ensures gameState.current_day is updated before phase change
+      await loadGameState(true);
       generateIndicators();
       
       // Show brief notification if event happened
@@ -423,6 +441,7 @@ export default function GamePage() {
         alert(message);
       }
       
+      // Phase change happens after state is fully loaded
       setPhase('morning');
     } catch (err) {
       console.error('Error skipping day:', err);
@@ -464,7 +483,7 @@ export default function GamePage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-pink-200 via-yellow-200 to-orange-200 flex items-center justify-center p-8">
         <div className="bg-yellow-100 rounded-xl p-8 max-w-md w-full shadow-lg border-4 border-yellow-400">
-          <h2 className="text-3xl font-bold text-center mb-4 text-orange-900">🎉 Welcome to TinyAssets!</h2>
+          <h2 className="text-3xl font-bold text-center mb-4 text-orange-900">🎉 Welcome to RWA Tycoon!</h2>
           <div className="bg-pink-200 border-4 border-pink-400 rounded-xl p-6 mb-6">
             <p className="text-pink-900 font-bold text-center mb-2 text-lg">Your Parent Code:</p>
             <p className="text-pink-900 text-4xl font-bold text-center mb-4">{parentPin}</p>
@@ -492,7 +511,7 @@ export default function GamePage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-200 via-cyan-200 to-green-200 flex items-center justify-center p-8">
         <div className="bg-yellow-100 rounded-xl p-8 max-w-md w-full shadow-lg border-4 border-yellow-400">
-          <h1 className="text-3xl font-bold text-center mb-2 text-orange-900">Welcome to TinyAssets</h1>
+          <h1 className="text-3xl font-bold text-center mb-2 text-orange-900">Welcome to RWA Tycoon</h1>
           <p className="text-center text-orange-700 mb-6 text-base font-semibold">Enter your username to start playing</p>
           
           {hasValidStoredUserId && (
@@ -618,13 +637,17 @@ export default function GamePage() {
   }, 0);
 
   // MORNING PHASE
-  const MorningPhase = () => (
+  const MorningPhase = () => {
+    // Ensure we always have a valid day number
+    const currentDay = gameState?.current_day ?? 1;
+    
+    return (
     <div className="min-h-screen bg-gradient-to-b from-yellow-100 via-yellow-50 to-orange-50 p-8">
       <div className="max-w-4xl mx-auto">
         {/* Day Counter */}
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold text-yellow-800 mb-4 drop-shadow-lg">
-            ☀️ MORNING - Day {gameState?.current_day ?? 1}
+            ☀️ MORNING - Day {currentDay}
           </h1>
           <div className="bg-yellow-200 rounded-xl p-6 inline-block shadow-lg border-4 border-yellow-400">
             <p className="text-3xl font-bold text-yellow-900">💰 {gameState?.tokens ?? 0} tokens</p>
@@ -714,7 +737,8 @@ export default function GamePage() {
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   // MIDDAY PHASE
   const MiddayPhase = () => {
@@ -727,11 +751,14 @@ export default function GamePage() {
     );
     const hasLowTokens = currentTokens < minShareCost;
     
+    // Ensure we always have a valid day number
+    const currentDay = gameState?.current_day ?? 1;
+    
     return (
     <div className="min-h-screen bg-gradient-to-b from-blue-200 via-sky-100 to-blue-100 p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-5xl font-bold text-blue-800 text-center mb-6 drop-shadow-lg">
-            🌤️ MIDDAY - Day {gameState?.current_day || 1}
+            🌤️ MIDDAY - Day {currentDay}
         </h1>
 
         <div className="bg-cyan-100 rounded-xl p-6 shadow-lg border-4 border-cyan-300 mb-6">
@@ -870,11 +897,15 @@ export default function GamePage() {
   };
 
   // EVENING PHASE
-  const EveningPhase = () => (
+  const EveningPhase = () => {
+    // Ensure we always have a valid day number
+    const currentDay = gameState?.current_day ?? 1;
+    
+    return (
     <div className="min-h-screen bg-gradient-to-b from-amber-300 via-orange-200 to-amber-200 p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-5xl font-bold text-orange-900 text-center mb-6 drop-shadow-lg">
-          🌆 EVENING - Day {gameState.current_day || 1}
+          🌆 EVENING - Day {currentDay}
         </h1>
 
         <div className="bg-yellow-100 rounded-xl p-6 shadow-lg border-4 border-yellow-400 mb-6">
@@ -933,14 +964,19 @@ export default function GamePage() {
         </button>
       </div>
     </div>
-  );
+    );
+  };
 
   // NIGHT PHASE
-  const NightPhase = () => (
+  const NightPhase = () => {
+    // Ensure we always have a valid day number
+    const currentDay = gameState?.current_day ?? 1;
+    
+    return (
     <div className="min-h-screen bg-gradient-to-b from-blue-800 via-indigo-700 to-blue-900 p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-5xl font-bold text-yellow-200 text-center mb-6 drop-shadow-lg">
-          🌙 NIGHT - Day {gameState.current_day || 1}
+          🌙 NIGHT - Day {currentDay}
         </h1>
 
         {/* New Badges */}
@@ -995,7 +1031,7 @@ export default function GamePage() {
             </div>
             <div className="bg-yellow-200 border-4 border-yellow-400 rounded-xl p-3">
               <p className="text-base font-semibold text-yellow-800">📅 Day</p>
-              <p className="text-2xl font-bold text-yellow-900">{gameState.current_day}</p>
+              <p className="text-2xl font-bold text-yellow-900">{currentDay}</p>
             </div>
           </div>
         </div>
@@ -1004,7 +1040,7 @@ export default function GamePage() {
           onClick={handleNextDay}
           className="w-full bg-yellow-500 hover:bg-yellow-600 text-yellow-900 py-4 rounded-xl text-xl font-bold transition-colors shadow-lg border-4 border-yellow-700"
         >
-          ☀️ Start Day {(gameState.current_day || 1) + 1} →
+          ☀️ Start Day {currentDay + 1} →
         </button>
         
         <button
@@ -1015,7 +1051,8 @@ export default function GamePage() {
         </button>
       </div>
     </div>
-  );
+    );
+  };
 
   // WIN SCREEN
   const WinScreen = () => {
@@ -1040,7 +1077,7 @@ export default function GamePage() {
     }, []);
 
     const winMessages = {
-      level5: "🎓 You reached Level 5! You're a TinyAssets Master!",
+      level5: "🎓 You reached Level 5! You're a RWA Master!",
       tokens100: "💰 You earned 100 tokens! You're a token tycoon!",
       allShares: "🏆 You own 100% of all assets! Complete portfolio ownership achieved!",
     };

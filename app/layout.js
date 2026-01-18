@@ -1,7 +1,7 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'TinyAssets - Learn About Real-World Assets',
+  title: 'RWA Tycoon - Learn About Real-World Assets',
   description: 'Gamified learning platform for kids to understand RWAs',
 }
 
